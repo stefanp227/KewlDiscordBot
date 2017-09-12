@@ -7,6 +7,8 @@ var parser = require('rss-parser');
 var feedParsed = [];
 
 client.login(config.token);
+config.rssLinks = '';
+fs.writeFile("./config.json", JSON.stringify(config), (err) => console.error);
 
 function parseStuff(channel, rssLink) {
   parser.parseURL(rssLink, function(err, parsed) {
@@ -43,14 +45,20 @@ client.on('message', (message) => {
   } else {
     var command = msgArray[0];
 
-    if (command == (config.prefix + '')) {
-      config.rssLink = msgArray[1];
+    if (command == (config.prefix + 'rss')) {
+      config.rssLinks += ',' + msgArray[1];
 
       fs.writeFile("./config.json", JSON.stringify(config), (err) => console.error);
 
-      botChannel.send("Link set to : " + config.rssLink);
+      botChannel.send("Added link to pool : " + msgArray[1]);
 
-      parseStuff(botChannel, config.rssLink)
+      config.rssLinks.split(',').forEach(function(link) {
+	if(link) {
+          parseStuff(botChannel, link);
+        } else {
+	  return;
+	}
+      });
     }
   }
 });
